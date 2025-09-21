@@ -204,7 +204,7 @@ export default function Home() {
                   <label className="block text-sm font-medium mb-2">Error Correction</label>
                   <select
                     value={qrSettings.errorCorrection}
-                    onChange={(e) => setQrSettings({...qrSettings, errorCorrection: e.target.value as any})}
+                    onChange={(e) => setQrSettings({...qrSettings, errorCorrection: e.target.value as "L" | "M" | "Q" | "H"})}
                     className="elegant-input w-full p-2 rounded-lg text-sm sm:text-base"
                   >
                     <option value="L">Low (7%)</option>
