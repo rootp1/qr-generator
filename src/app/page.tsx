@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { QRCodeCanvas } from "qrcode.react";
+import { QRCodeCanvas, QRCodeSVG } from "qrcode.react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface QRSettings {
@@ -43,14 +43,25 @@ export default function Home() {
     }
   };
 
-  const handleDownload = () => {
-    if (qrCodeRef.current) {
+  const handleDownload = (format: "png" | "svg") => {
+    if (format === "png" && qrCodeRef.current) {
       const canvas = qrCodeRef.current.querySelector("canvas");
       if (canvas) {
         const link = document.createElement("a");
         link.download = `qr-code-${Date.now()}.png`;
         link.href = canvas.toDataURL();
         link.click();
+      }
+    } else {
+      const svgElement = document.getElementById("qr-code-svg");
+      if (svgElement) {
+        const svgData = new XMLSerializer().serializeToString(svgElement);
+        const blob = new Blob([svgData], { type: "image/svg+xml" });
+        const link = document.createElement("a");
+        link.download = `qr-code-${Date.now()}.svg`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        URL.revokeObjectURL(link.href);
       }
     }
   };
@@ -258,11 +269,22 @@ export default function Home() {
                   level={qrSettings.errorCorrection}
                   includeMargin={true}
                 />
+                <div style={{ display: 'none' }}>
+                  <QRCodeSVG
+                    id="qr-code-svg"
+                    value={qrCodeValue}
+                    size={isMobile ? Math.min(qrSettings.size, 200) : qrSettings.size}
+                    bgColor={qrSettings.bgColor}
+                    fgColor={qrSettings.fgColor}
+                    level={qrSettings.errorCorrection}
+                    includeMargin={true}
+                  />
+                </div>
               </div>
               
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
                 <motion.button
-                  onClick={handleDownload}
+                  onClick={() => handleDownload("png")}
                   className="btn-luxury flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -271,6 +293,17 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   Download PNG
+                </motion.button>
+                <motion.button
+                  onClick={() => handleDownload("svg")}
+                  className="btn-luxury flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download SVG
                 </motion.button>
               </div>
               
