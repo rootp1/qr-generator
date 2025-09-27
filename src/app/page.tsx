@@ -29,6 +29,11 @@ export default function Home() {
     document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
   }, [isDark]);
 
+  // Send app ready signal when component mounts
+  useEffect(() => {
+    sendTaskCompletionSignal('app_loaded');
+  }, []);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
@@ -40,6 +45,24 @@ export default function Home() {
     e.preventDefault();
     if (text.trim()) {
       setQrCodeValue(text);
+      
+      // Send signal to parent window (Orbital platform) for task completion
+      sendTaskCompletionSignal('qr_generated');
+    }
+  };
+
+  // Function to send completion signal to parent window
+  const sendTaskCompletionSignal = (action: string) => {
+    try {
+      // Check if we're in an iframe
+      if (window.parent && window.parent !== window) {
+        console.log('🚀 Sending task completion signal:', action);
+        
+        // Send just the action string to parent window (Orbital platform)
+        window.parent.postMessage(action, '*');
+      }
+    } catch (error) {
+      console.error('Error sending task completion signal:', error);
     }
   };
 
@@ -51,6 +74,9 @@ export default function Home() {
         link.download = `qr-code-${Date.now()}.png`;
         link.href = canvas.toDataURL();
         link.click();
+        
+        // Send download completion signal
+        sendTaskCompletionSignal('qr_downloaded');
       }
     } else {
       const svgElement = document.getElementById("qr-code-svg");
@@ -62,6 +88,9 @@ export default function Home() {
         link.href = URL.createObjectURL(blob);
         link.click();
         URL.revokeObjectURL(link.href);
+        
+        // Send download completion signal
+        sendTaskCompletionSignal('qr_downloaded');
       }
     }
   };
